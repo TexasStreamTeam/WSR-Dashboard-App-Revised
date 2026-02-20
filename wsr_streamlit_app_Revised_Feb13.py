@@ -487,10 +487,10 @@ try:
 except:
     pass
 
-# ----- Safe axis limits -----
-ymin, ymax = ax.get_ylim()
-if not np.isfinite(ymin) or not np.isfinite(ymax) or ymin == ymax:
-    ax.set_ylim(6, 9)
+    # ----- Safe axis limits -----
+    ymin, ymax = ax.get_ylim()
+    if not np.isfinite(ymin) or not np.isfinite(ymax) or ymin == ymax:
+        ax.set_ylim(6, 9)
 
     ax.set_title(f"{segment_label}")
     save_figure(fig_ph, os.path.join(output_dir, "Figure9_pH_Boxplot.png"))
