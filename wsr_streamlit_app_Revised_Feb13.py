@@ -335,12 +335,12 @@ if uploaded_file:
 
     # ================== Figure 7: TDS ==================
     
-        fig7, ax = plt.subplots(figsize=(10, 6))
+    fig7, ax = plt.subplots(figsize=(10, 6))
         
-        tds_by_site = series_by_site(df, site_order, 'TDS (mg/L)')
+    tds_by_site = series_by_site(df, site_order, 'TDS (mg/L)')
         
-        ax.boxplot(
-            tds_by_site,
+    ax.boxplot(
+             tds_by_site,
             patch_artist=False,
             whis=1.5,
             medianprops=dict(color='black'),
@@ -359,7 +359,6 @@ if uploaded_file:
     
     # ----- Y axis scaling -----
     if any(len(v) > 0 for v in tds_by_site):
-    
         all_vals = np.concatenate([v for v in tds_by_site if len(v) > 0])
         y_min = float(np.nanmin(all_vals))
         y_max = float(np.nanmax(all_vals))
@@ -376,26 +375,27 @@ if uploaded_file:
     
         ax.set_ylim(y_min_adj, y_max_adj)
     
-    elif WQS_TDS is not None:
+        elif WQS_TDS is not None:
         ax.set_ylim(WQS_TDS - 50, WQS_TDS + 50)
+
+       # ----- Safe WQS line -----
+        if WQS_TDS is not None:
+            try:
+                if np.isfinite(float(WQS_TDS)):
+                    ax.axhline(float(WQS_TDS), linestyle='--', color='red', linewidth=1.5)
+            except:
+                pass
+        
+        # ----- Safe axis limits -----
+        ymin, ymax = ax.get_ylim()
+        if not np.isfinite(ymin) or not np.isfinite(ymax) or ymin == ymax:
+            ax.set_ylim(0, 1500)
+        
+        ax.set_title(f"{segment_label}")
+        
+        save_figure(fig7, os.path.join(output_dir, "Figure7_TDS_Boxplot.png"))
     
-    # ----- WQS Line (STILL INSIDE FIGURE BLOCK) -----
-   # ----- Safe WQS line -----
-    if WQS_TDS is not None:
-        try:
-            if np.isfinite(float(WQS_TDS)):
-                ax.axhline(float(WQS_TDS), linestyle='--', color='red', linewidth=1.5)
-        except:
-            pass
-    
-    # ----- Safe axis limits -----
-    ymin, ymax = ax.get_ylim()
-    if not np.isfinite(ymin) or not np.isfinite(ymax) or ymin == ymax:
-        ax.set_ylim(0, 1500)
-    
-    ax.set_title(f"{segment_label}")
-    
-    save_figure(fig7, os.path.join(output_dir, "Figure7_TDS_Boxplot.png"))
+
     
        
     # ================== Figure 7B: Conductivity ==================
