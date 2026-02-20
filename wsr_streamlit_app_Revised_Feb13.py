@@ -17,8 +17,7 @@ uploaded_file = st.file_uploader(
     "Upload your cleaned dataset (CSV or Excel)",
     type=["csv", "xlsx"]
 )
-df['Water Temp Rounded'] = pd.to_numeric(df['Water Temp Rounded'], errors='coerce')
-df['Sample Date'] = pd.to_datetime(df['Sample Date'], errors='coerce')
+
 
 # ================== Manual WQS inputs (Now Optional) ==================
 st.sidebar.header("Water Quality Standards (Manual Input)")
@@ -185,7 +184,6 @@ def build_monthly_climate_from_df(df):
 
 # ================== Main ==================
 if uploaded_file:
-    # ---------- Read (CSV or Excel) ----------
     file_name = uploaded_file.name.lower()
     if file_name.endswith(".csv"):
         df = pd.read_csv(uploaded_file)
