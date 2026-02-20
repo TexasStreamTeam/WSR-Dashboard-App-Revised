@@ -458,7 +458,8 @@ if uploaded_file:
     save_figure(fig8, os.path.join(output_dir, "Figure8_DO_Boxplot.png"))
 
 
-    # ================== Figure 9: pH ==================
+    # ================== Figure 9: pH ==================]
+    
     fig_ph, ax = plt.subplots(figsize=(10, 6))
 
     ax.boxplot(
@@ -480,12 +481,12 @@ if uploaded_file:
     style_axes(ax, 'Site ID', 'pH (standard units)', site_order)
 
   # ----- Safe WQS band -----
-try:
-    if np.isfinite(float(WQS_PH_MIN)) and np.isfinite(float(WQS_PH_HIGH)):
-        ax.axhline(float(WQS_PH_MIN), linestyle='--', color='red', linewidth=1.5)
-        ax.axhline(float(WQS_PH_MAX), linestyle='--', color='red', linewidth=1.5)
-except:
-    pass
+    try:
+        if np.isfinite(float(WQS_PH_MIN)) and np.isfinite(float(WQS_PH_HIGH)):
+            ax.axhline(float(WQS_PH_MIN), linestyle='--', color='red', linewidth=1.5)
+            ax.axhline(float(WQS_PH_MAX), linestyle='--', color='red', linewidth=1.5)
+    except:
+        pass
 
     # ----- Safe axis limits -----
     ymin, ymax = ax.get_ylim()
