@@ -327,54 +327,67 @@ if uploaded_file:
     save_figure(fig6, os.path.join(output_dir, "Figure6_WaterTemperature.png"))
 
     # ================== Figure 7: TDS ==================
-    fig7, ax = plt.subplots(figsize=(10, 6))
-    tds_by_site = series_by_site(df, site_order, 'TDS (mg/L)')
-    ax.boxplot(
-        tds_by_site,
-        patch_artist=False, whis=1.5,
-        medianprops=dict(color='black'),
-        whiskerprops=dict(color='black'),
-        capprops=dict(color='black'),
-        boxprops=dict(color='black'),
-        flierprops=dict(
-            marker='o', markersize=4,
-            markerfacecolor='black', markeredgecolor='black'
-        )
-    )
-    style_axes(ax, 'Site ID', 'Total Dissolved Solids (mg/L)', site_order)
+fig7, ax = plt.subplots(figsize=(10, 6))
 
-    # Make sure WQS line is visible
-    if any(len(v) > 0 for v in tds_by_site):
-    
-        all_vals = np.concatenate([v for v in tds_by_site if len(v) > 0])
-        y_min = float(np.nanmin(all_vals))
-        y_max = float(np.nanmax(all_vals))
-    
-        span = (y_max - y_min) if y_max > y_min else 10.0
-        pad = max(5.0, 0.05 * span)
-    
-        if WQS_TDS is not None:
-            y_min_adj = min(y_min - pad, WQS_TDS - pad)
-            y_max_adj = max(y_max + pad, WQS_TDS + pad)
-        else:
-            y_min_adj = y_min - pad
-            y_max_adj = y_max + pad
-    
-        ax.set_ylim(y_min_adj, y_max_adj)
-    
-    elif WQS_TDS is not None:
-        ax.set_ylim(WQS_TDS - 50, WQS_TDS + 50)
-  
+tds_by_site = series_by_site(df, site_order, 'TDS (mg/L)')
+
+ax.boxplot(
+    tds_by_site,
+    patch_artist=False,
+    whis=1.5,
+    medianprops=dict(color='black'),
+    whiskerprops=dict(color='black'),
+    capprops=dict(color='black'),
+    boxprops=dict(color='black'),
+    flierprops=dict(
+        marker='o',
+        markersize=4,
+        markerfacecolor='black',
+        markeredgecolor='black'
+    )
+)
+
+style_axes(ax, 'Site ID', 'Total Dissolved Solids (mg/L)', site_order)
+
+# ----- Y axis scaling -----
+if any(len(v) > 0 for v in tds_by_site):
+
+    all_vals = np.concatenate([v for v in tds_by_site if len(v) > 0])
+    y_min = float(np.nanmin(all_vals))
+    y_max = float(np.nanmax(all_vals))
+
+    span = (y_max - y_min) if y_max > y_min else 10.0
+    pad = max(5.0, 0.05 * span)
+
+    if WQS_TDS is not None:
+        y_min_adj = min(y_min - pad, WQS_TDS - pad)
+        y_max_adj = max(y_max + pad, WQS_TDS + pad)
+    else:
+        y_min_adj = y_min - pad
+        y_max_adj = y_max + pad
+
+    ax.set_ylim(y_min_adj, y_max_adj)
+
+elif WQS_TDS is not None:
+    ax.set_ylim(WQS_TDS - 50, WQS_TDS + 50)
+
+# ----- WQS Line (STILL INSIDE FIGURE BLOCK) -----
 if WQS_TDS is not None:
     ax.axhline(WQS_TDS, linestyle='--', color='red', linewidth=1.8, zorder=10)
     ax.text(
         1,
         WQS_TDS + (0.02 * (ax.get_ylim()[1] - ax.get_ylim()[0])),
-        'WQS', color='red', va='bottom', zorder=11
+        'WQS',
+        color='red',
+        va='bottom',
+        zorder=11
     )
-    ax.set_title(f"{segment_label}")
-    save_figure(fig7, os.path.join(output_dir, "Figure7_TDS_Boxplot.png"))
 
+ax.set_title(f"{segment_label}")
+
+save_figure(fig7, os.path.join(output_dir, "Figure7_TDS_Boxplot.png"))
+
+  
     # ================== Figure 7B: Conductivity ==================
     fig7b, ax = plt.subplots(figsize=(10, 6))
     ax.boxplot(
