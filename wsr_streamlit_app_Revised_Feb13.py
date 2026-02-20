@@ -299,7 +299,7 @@ if uploaded_file:
 
     # ---------- Output directory ----------
     output_dir = "wsr_figures"
-    ensure_dir(output_dir)
+    os.makedirs(output_dir, exist_ok=True)
 
     # Keep site order as in file
     site_order = list(pd.unique(df['Site ID']))
@@ -324,7 +324,13 @@ if uploaded_file:
     ax.set_ylabel('Water Temperature (°C)')
     ax.set_title(f"{segment_label}")
     ax.legend(title='Site ID', loc='center left', bbox_to_anchor=(1.0, 0.5))
-    save_figure(fig6, os.path.join(output_dir, "Figure6_WaterTemperature.png"))
+    def save_figure(fig, path):
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        fig.savefig(path, dpi=300, bbox_inches='tight')
+        plt.close(fig)
+    except Exception as e:
+        print(f"Error saving figure: {e}")
 # ================== Figure 7: TDS ==================
 
     fig7, ax = plt.subplots(figsize=(10, 6))
