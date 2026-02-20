@@ -17,6 +17,8 @@ uploaded_file = st.file_uploader(
     "Upload your cleaned dataset (CSV or Excel)",
     type=["csv", "xlsx"]
 )
+df['Water Temp Rounded'] = pd.to_numeric(df['Water Temp Rounded'], errors='coerce')
+df['Sample Date'] = pd.to_datetime(df['Sample Date'], errors='coerce')
 
 # ================== Manual WQS inputs (Now Optional) ==================
 st.sidebar.header("Water Quality Standards (Manual Input)")
@@ -304,8 +306,10 @@ if uploaded_file:
     # Keep site order as in file
     site_order = list(pd.unique(df['Site ID']))
 
+   
     # ================== Figure 6: Water Temperature ==================
     fig6, ax = plt.subplots(figsize=(14, 6))
+    
     for s in site_order:
         dsi = df[df['Site ID'].eq(s)]
         ax.scatter(
@@ -316,21 +320,40 @@ if uploaded_file:
             label=s,
             alpha=0.9
         )
-    ax.axhline(WQS_TEMP, linestyle='--', color='red', linewidth=1.5, zorder=10)
-    if df['Sample Date'].notna().any():
-        xmin = df['Sample Date'].min()
-        ax.text(xmin, WQS_TEMP + 0.5, 'WQS', color='red', va='bottom', zorder=11)
+    
+    # ---- Safe WQS handling ----
+    try:
+        WQS_TEMP = float(WQS_TEMP)
+        if np.isfinite(WQS_TEMP):
+            ax.axhline(WQS_TEMP, linestyle='--', color='red', linewidth=1.5, zorder=10)
+    
+            if df['Sample Date'].notna().any():
+                xmin = df['Sample Date'].min()
+                ax.text(
+                    xmin,
+                    WQS_TEMP + 0.5,
+                    'WQS',
+                    color='red',
+                    va='bottom',
+                    zorder=11
+                )
+    except:
+        pass  # silently skip if invalid
+    
+    # ---- Force safe Y limits ----
+    ymin, ymax = ax.get_ylim()
+    if not np.isfinite(ymin) or not np.isfinite(ymax):
+        ax.set_ylim(0, 30)
+    elif ymax - ymin > 200:
+        ax.set_ylim(ymin, ymin + 50)
+    
     ax.set_xlabel('Sample Date')
     ax.set_ylabel('Water Temperature (°C)')
     ax.set_title(f"{segment_label}")
     ax.legend(title='Site ID', loc='center left', bbox_to_anchor=(1.0, 0.5))
-    def save_figure(fig, path):
-        try:
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-            fig.savefig(path, dpi=300, bbox_inches='tight')
-            plt.close(fig)
-        except Exception as e:
-            print(f"Error saving figure: {e}")
+    
+    st.pyplot(fig6)
+    plt.close(fig6)
 # ================== Figure 7: TDS ==================
 
     fig7, ax = plt.subplots(figsize=(10, 6))
