@@ -325,12 +325,12 @@ if uploaded_file:
     ax.set_title(f"{segment_label}")
     ax.legend(title='Site ID', loc='center left', bbox_to_anchor=(1.0, 0.5))
     def save_figure(fig, path):
-    try:
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        fig.savefig(path, dpi=300, bbox_inches='tight')
-        plt.close(fig)
-    except Exception as e:
-        print(f"Error saving figure: {e}")
+        try:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            fig.savefig(path, dpi=300, bbox_inches='tight')
+            plt.close(fig)
+        except Exception as e:
+            print(f"Error saving figure: {e}")
 # ================== Figure 7: TDS ==================
 
     fig7, ax = plt.subplots(figsize=(10, 6))
