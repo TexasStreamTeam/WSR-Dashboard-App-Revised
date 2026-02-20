@@ -327,7 +327,7 @@ if uploaded_file:
     save_figure(fig6, os.path.join(output_dir, "Figure6_WaterTemperature.png"))
 
     # ================== Figure 7: TDS ==================
-    fig7, ax = plt.subplots(figsize=(10, 6))
+fig7, ax = plt.subplots(figsize=(10, 6))
     tds_by_site = series_by_site(df, site_order, 'TDS (mg/L)')
     ax.boxplot(
         tds_by_site,
