@@ -362,7 +362,7 @@ if uploaded_file:
     
         ax.set_ylim(y_min_adj, y_max_adj)
     
-    elif WQS_TDS is not None:
+if WQS_TDS is not None:
         ax.set_ylim(WQS_TDS - 50, WQS_TDS + 50)
   
 if WQS_TDS is not None:
