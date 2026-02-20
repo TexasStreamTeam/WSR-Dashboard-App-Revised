@@ -309,71 +309,52 @@ if uploaded_file:
     fig6, ax = plt.subplots(figsize=(14, 6))
     
     for s in site_order:
-        dsi = df[df['Site ID'].eq(s)]
+        dsi = df[df['Site ID'] == s]
         ax.scatter(
             dsi['Sample Date'],
             dsi['Water Temp Rounded'],
             s=40,
-            marker='o',
-            label=s,
-            alpha=0.9
+            alpha=0.9,
+            label=s
         )
     
-    # ---- Safe WQS handling ----
-    try:
-        WQS_TEMP = float(WQS_TEMP)
-        if np.isfinite(WQS_TEMP):
-            ax.axhline(WQS_TEMP, linestyle='--', color='red', linewidth=1.5, zorder=10)
+    # Safe WQS line
+    if WQS_TEMP is not None and np.isfinite(WQS_TEMP):
+        ax.axhline(WQS_TEMP, linestyle='--', color='red')
     
-            if df['Sample Date'].notna().any():
-                xmin = df['Sample Date'].min()
-                ax.text(
-                    xmin,
-                    WQS_TEMP + 0.5,
-                    'WQS',
-                    color='red',
-                    va='bottom',
-                    zorder=11
-                )
-    except:
-        pass  # silently skip if invalid
-    
-    # ---- Force safe Y limits ----
+    # Safe axis limits
     ymin, ymax = ax.get_ylim()
     if not np.isfinite(ymin) or not np.isfinite(ymax):
         ax.set_ylim(0, 30)
-    elif ymax - ymin > 200:
-        ax.set_ylim(ymin, ymin + 50)
     
     ax.set_xlabel('Sample Date')
     ax.set_ylabel('Water Temperature (°C)')
-    ax.set_title(f"{segment_label}")
-    ax.legend(title='Site ID', loc='center left', bbox_to_anchor=(1.0, 0.5))
+    ax.legend()
     
-    st.pyplot(fig6)
-    plt.close(fig6)
-# ================== Figure 7: TDS ==================
+    save_figure(fig6, os.path.join(output_dir, "Figure6.png"))
 
-    fig7, ax = plt.subplots(figsize=(10, 6))
+    # ================== Figure 7: TDS ==================
     
-    tds_by_site = series_by_site(df, site_order, 'TDS (mg/L)')
-    
-    ax.boxplot(
-        tds_by_site,
-        patch_artist=False,
-        whis=1.5,
-        medianprops=dict(color='black'),
-        whiskerprops=dict(color='black'),
-        capprops=dict(color='black'),
-        boxprops=dict(color='black'),
-        flierprops=dict(
-            marker='o',
-            markersize=4,
-            markerfacecolor='black',
-            markeredgecolor='black'
+        fig7, ax = plt.subplots(figsize=(10, 6))
+        
+        tds_by_site = series_by_site(df, site_order, 'TDS (mg/L)')
+        
+        ax.boxplot(
+            tds_by_site,
+            patch_artist=False,
+            whis=1.5,
+            medianprops=dict(color='black'),
+            whiskerprops=dict(color='black'),
+            capprops=dict(color='black'),
+            boxprops=dict(color='black'),
+            flierprops=dict(
+                marker='o',
+                markersize=4,
+                markerfacecolor='black',
+                markeredgecolor='black'
+            )
         )
-    )
-    
+        
     style_axes(ax, 'Site ID', 'Total Dissolved Solids (mg/L)', site_order)
     
     # ----- Y axis scaling -----
@@ -399,16 +380,18 @@ if uploaded_file:
         ax.set_ylim(WQS_TDS - 50, WQS_TDS + 50)
     
     # ----- WQS Line (STILL INSIDE FIGURE BLOCK) -----
+   # ----- Safe WQS line -----
     if WQS_TDS is not None:
-        ax.axhline(WQS_TDS, linestyle='--', color='red', linewidth=1.8, zorder=10)
-        ax.text(
-            1,
-            WQS_TDS + (0.02 * (ax.get_ylim()[1] - ax.get_ylim()[0])),
-            'WQS',
-            color='red',
-            va='bottom',
-            zorder=11
-        )
+        try:
+            if np.isfinite(float(WQS_TDS)):
+                ax.axhline(float(WQS_TDS), linestyle='--', color='red', linewidth=1.5)
+        except:
+            pass
+    
+    # ----- Safe axis limits -----
+    ymin, ymax = ax.get_ylim()
+    if not np.isfinite(ymin) or not np.isfinite(ymax) or ymin == ymax:
+        ax.set_ylim(0, 1500)
     
     ax.set_title(f"{segment_label}")
     
@@ -458,16 +441,18 @@ if uploaded_file:
     style_axes(ax, 'Site ID', 'Dissolved Oxygen (mg/L)', site_order)
 
     # Add WQS line if provided
+    # ----- Safe WQS line -----
     if WQS_DO is not None:
-        ax.axhline(WQS_DO, linestyle='--', color='red', zorder=10)
-        ax.text(
-            1,
-            WQS_DO + 0.1,
-            'WQS',
-            color='red',
-            va='bottom',
-            zorder=11
-        )
+        try:
+            if np.isfinite(float(WQS_DO)):
+                ax.axhline(float(WQS_DO), linestyle='--', color='red', linewidth=1.5)
+        except:
+            pass
+    
+    # ----- Safe axis limits -----
+    ymin, ymax = ax.get_ylim()
+    if not np.isfinite(ymin) or not np.isfinite(ymax) or ymin == ymax:
+        ax.set_ylim(0, 15)
 
     ax.set_title(f"{segment_label}")
     save_figure(fig8, os.path.join(output_dir, "Figure8_DO_Boxplot.png"))
@@ -494,28 +479,18 @@ if uploaded_file:
 
     style_axes(ax, 'Site ID', 'pH (standard units)', site_order)
 
-    # Add WQS lines if provided
-    if WQS_pH_MAX is not None:
-        ax.axhline(WQS_pH_MAX, linestyle='--', color='red', zorder=10)
-        ax.text(
-            1,
-            WQS_pH_MAX + 0.03,
-            'WQS Max',
-            color='red',
-            va='bottom',
-            zorder=11
-        )
+  # ----- Safe WQS band -----
+try:
+    if np.isfinite(float(WQS_PH_MIN)) and np.isfinite(float(WQS_PH_HIGH)):
+        ax.axhline(float(WQS_PH_MIN), linestyle='--', color='red', linewidth=1.5)
+        ax.axhline(float(WQS_PH_MAX), linestyle='--', color='red', linewidth=1.5)
+except:
+    pass
 
-    if WQS_pH_MIN is not None:
-        ax.axhline(WQS_pH_MIN, linestyle='--', color='red', zorder=10)
-        ax.text(
-            1,
-            WQS_pH_MIN + 0.03,
-            'WQS Min',
-            color='red',
-            va='bottom',
-            zorder=11
-        )
+# ----- Safe axis limits -----
+ymin, ymax = ax.get_ylim()
+if not np.isfinite(ymin) or not np.isfinite(ymax) or ymin == ymax:
+    ax.set_ylim(6, 9)
 
     ax.set_title(f"{segment_label}")
     save_figure(fig_ph, os.path.join(output_dir, "Figure9_pH_Boxplot.png"))
@@ -625,20 +600,20 @@ if uploaded_file:
         style_axes(ax, 'Site ID', 'E. coli (CFU/100 mL)', site_order)
 
         # Geometric mean WQS line
-    if WQS_ECOLI_GM is not None:
-        ax.axhline(WQS_ECOLI_GM, linestyle='--', color='red', zorder=10)
-        ax.text(
-            1, WQS_ECOLI_GM * 1.02,
-            'GM WQS', color='red', va='bottom', zorder=11
-        )
-
-        # Single-sample WQS line
-    if WQS_ECOLI_SINGLE is not None:
-        ax.axhline(WQS_ECOLI_SINGLE, linestyle=':', color='red', zorder=10)
-        ax.text(
-            1, WQS_ECOLI_SINGLE * 1.02,
-            'Single-sample WQS', color='red', va='bottom', zorder=11
-        )
+    # ----- Safe WQS lines -----
+    try:
+        if WQS_ECOLI_GM is not None and np.isfinite(float(WQS_ECOLI_GM)):
+            ax.axhline(float(WQS_ECOLI_GM), linestyle='--', color='red', linewidth=1.5)
+    
+        if WQS_ECOLI_SINGLE is not None and np.isfinite(float(WQS_ECOLI_SINGLE)):
+            ax.axhline(float(WQS_ECOLI_SINGLE), linestyle=':', color='red', linewidth=1.5)
+    except:
+        pass
+    
+    # ----- Safe axis limits -----
+    ymin, ymax = ax.get_ylim()
+    if not np.isfinite(ymin) or not np.isfinite(ymax) or ymin == ymax:
+        ax.set_ylim(0, 2000)
 
         ax.set_title(f"{segment_label}")
         save_figure(fig12, os.path.join(output_dir, "Figure12_Ecoli_Boxplot.png"))
