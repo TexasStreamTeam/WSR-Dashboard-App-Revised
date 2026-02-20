@@ -409,52 +409,89 @@ if uploaded_file:
     ax.set_title(f"{segment_label}")
     save_figure(fig7b, os.path.join(output_dir, "Figure7B_Conductivity_Boxplot.png"))
 
-    # ================== Figure 8: Dissolved Oxygen ==================
+        # ================== Figure 8: Dissolved Oxygen ==================
     fig8, ax = plt.subplots(figsize=(10, 6))
+
     ax.boxplot(
         series_by_site(df, site_order, 'DO_avg'),
-        patch_artist=False, whis=1.5,
+        patch_artist=False,
+        whis=1.5,
         medianprops=dict(color='black'),
         whiskerprops=dict(color='black'),
         capprops=dict(color='black'),
         boxprops=dict(color='black'),
         flierprops=dict(
-            marker='o', markersize=4,
-            markerfacecolor='black', markeredgecolor='black'
+            marker='o',
+            markersize=4,
+            markerfacecolor='black',
+            markeredgecolor='black'
         )
     )
+
     style_axes(ax, 'Site ID', 'Dissolved Oxygen (mg/L)', site_order)
-if WQS_DO is not None:
-    ax.axhline(WQS_DO, linestyle='--', color='red', zorder=10)
-    ax.text(1, WQS_DO + 0.1, 'WQS', color='red', va='bottom', zorder=11)
+
+    # Add WQS line if provided
+    if WQS_DO is not None:
+        ax.axhline(WQS_DO, linestyle='--', color='red', zorder=10)
+        ax.text(
+            1,
+            WQS_DO + 0.1,
+            'WQS',
+            color='red',
+            va='bottom',
+            zorder=11
+        )
+
     ax.set_title(f"{segment_label}")
     save_figure(fig8, os.path.join(output_dir, "Figure8_DO_Boxplot.png"))
 
+
     # ================== Figure 9: pH ==================
     fig_ph, ax = plt.subplots(figsize=(10, 6))
+
     ax.boxplot(
         series_by_site(df, site_order, 'pH'),
-        patch_artist=False, whis=1.5,
+        patch_artist=False,
+        whis=1.5,
         medianprops=dict(color='black'),
         whiskerprops=dict(color='black'),
         capprops=dict(color='black'),
         boxprops=dict(color='black'),
         flierprops=dict(
-            marker='o', markersize=4,
-            markerfacecolor='black', markeredgecolor='black'
+            marker='o',
+            markersize=4,
+            markerfacecolor='black',
+            markeredgecolor='black'
         )
     )
-    style_axes(ax, 'Site ID', 'pH (standard units)', site_order)
-if WQS_pH_MAX is not None:
-    ax.axhline(WQS_pH_MAX, linestyle='--', color='red', zorder=10)
-    ax.text(1, WQS_pH_MAX + 0.03, 'WQS Max', color='red', va='bottom', zorder=11)
 
-if WQS_pH_MIN is not None:
-    ax.axhline(WQS_pH_MIN, linestyle='--', color='red', zorder=10)
-    ax.text(1, WQS_pH_MIN + 0.03, 'WQS Min', color='red', va='bottom', zorder=11)
+    style_axes(ax, 'Site ID', 'pH (standard units)', site_order)
+
+    # Add WQS lines if provided
+    if WQS_pH_MAX is not None:
+        ax.axhline(WQS_pH_MAX, linestyle='--', color='red', zorder=10)
+        ax.text(
+            1,
+            WQS_pH_MAX + 0.03,
+            'WQS Max',
+            color='red',
+            va='bottom',
+            zorder=11
+        )
+
+    if WQS_pH_MIN is not None:
+        ax.axhline(WQS_pH_MIN, linestyle='--', color='red', zorder=10)
+        ax.text(
+            1,
+            WQS_pH_MIN + 0.03,
+            'WQS Min',
+            color='red',
+            va='bottom',
+            zorder=11
+        )
+
     ax.set_title(f"{segment_label}")
     save_figure(fig_ph, os.path.join(output_dir, "Figure9_pH_Boxplot.png"))
-
     # ================== Figure 10: Transparency (Secchi vs Tube) ==================
     trans_df = df.melt(
         id_vars=['Site ID'],
