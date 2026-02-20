@@ -1,3 +1,4 @@
+
 # Watershed Summary Report Graph Generator (Exact Style)
 # Designed to take cleaned outputs from the Validation App (CSV or Excel)
 
@@ -365,7 +366,7 @@ if any(len(v) > 0 for v in tds_by_site):
         y_min_adj = y_min - pad
         y_max_adj = y_max + pad
 
-ax.set_ylim(y_min_adj, y_max_adj)
+    ax.set_ylim(y_min_adj, y_max_adj)
 
 elif WQS_TDS is not None:
     ax.set_ylim(WQS_TDS - 50, WQS_TDS + 50)
