@@ -18,9 +18,7 @@ uploaded_file = st.file_uploader(
     type=["csv", "xlsx"]
 )
 
-# ================== Manual WQS inputs (per run) ==================
-
-# ================== Manual WQS inputs (per run, now optional) ==================
+# ================== Manual WQS inputs (Now Optional) ==================
 st.sidebar.header("Water Quality Standards (Manual Input)")
 
 segment_label = st.sidebar.text_input(
@@ -28,24 +26,50 @@ segment_label = st.sidebar.text_input(
     value=""
 )
 
-# Helper to allow optional numeric input
-def optional_number_input(label, step=1.0, default=None, help_text=""):
-    val = st.sidebar.text_input(label + " (optional)", value="" if default is None else str(default), help=help_text)
+def optional_number_input(label, default=None, help_text=""):
+    raw = st.sidebar.text_input(label + " (leave blank if not used)",
+                                value="" if default is None else str(default),
+                                help=help_text)
     try:
-        return float(val) if val.strip() != "" else None
+        return float(raw) if raw.strip() != "" else None
     except:
         return None
 
-WQS_TEMP = optional_number_input("Temperature threshold (°C)", step=0.1, default=33.9,
-                                 help_text="Upper guideline temperature for this segment.")
-WQS_TDS = optional_number_input("Total Dissolved Solids (mg/L)", step=10.0, default=600.0)
-WQS_DO = optional_number_input("Dissolved Oxygen (mg/L) — minimum", step=0.1, default=5.0)
-WQS_pH_MIN = optional_number_input("pH — minimum (s.u.)", step=0.1, default=6.5)
-WQS_pH_MAX = optional_number_input("pH — maximum (s.u.)", step=0.1, default=9.0)
-WQS_ECOLI_GM = optional_number_input("E. coli – Geometric Mean (#/100 mL)", step=1.0, default=126,
-                                      help_text="Geometric mean criterion (e.g., 126 for PCR1).")
-WQS_ECOLI_SINGLE = optional_number_input("E. coli – Single Sample (#/100 mL)", step=1.0, default=399,
-                                         help_text="Single-sample maximum criterion (e.g., 399 for PCR1).")
+WQS_TEMP = optional_number_input(
+    "Temperature threshold (°C)",
+    default=33.9,
+    help_text="Upper guideline temperature for this segment."
+)
+
+WQS_TDS = optional_number_input(
+    "Total Dissolved Solids (mg/L)",
+    default=600.0
+)
+
+WQS_DO = optional_number_input(
+    "Dissolved Oxygen (mg/L) — minimum",
+    default=5.0
+)
+
+WQS_pH_MIN = optional_number_input(
+    "pH — minimum (s.u.)",
+    default=6.5
+)
+
+WQS_pH_MAX = optional_number_input(
+    "pH — maximum (s.u.)",
+    default=9.0
+)
+
+WQS_ECOLI_GM = optional_number_input(
+    "E. coli – Geometric Mean (#/100 mL)",
+    default=126.0
+)
+
+WQS_ECOLI_SINGLE = optional_number_input(
+    "E. coli – Single Sample (#/100 mL)",
+    default=399.0
+)
 
 st.sidebar.caption(
     f"Using WQS for: **{segment_label or 'Unnamed segment'}**\n\n"
@@ -54,7 +78,7 @@ st.sidebar.caption(
     f"- DO ≥ {WQS_DO if WQS_DO is not None else 'ND'} mg/L\n"
     f"- pH {WQS_pH_MIN if WQS_pH_MIN is not None else 'ND'}–{WQS_pH_MAX if WQS_pH_MAX is not None else 'ND'}\n"
     f"- E. coli: {WQS_ECOLI_GM if WQS_ECOLI_GM is not None else 'ND'} GM, "
-    f"{WQS_ECOLI_SINGLE if WQS_ECOLI_SINGLE is not None else 'ND'} single sample (#/100 mL)"
+    f"{WQS_ECOLI_SINGLE if WQS_ECOLI_SINGLE is not None else 'ND'} single sample"
 )
 
 
@@ -321,17 +345,27 @@ if uploaded_file:
 
     # Make sure WQS line is visible
     if any(len(v) > 0 for v in tds_by_site):
+    
         all_vals = np.concatenate([v for v in tds_by_site if len(v) > 0])
         y_min = float(np.nanmin(all_vals))
         y_max = float(np.nanmax(all_vals))
-        span = (y_max - y_min) if (y_max > y_min) else 10.0
+    
+        span = (y_max - y_min) if y_max > y_min else 10.0
         pad = max(5.0, 0.05 * span)
-        y_min_adj = min(y_min - pad, WQS_TDS - pad)
-        y_max_adj = max(y_max + pad, WQS_TDS + pad)
+    
+        if WQS_TDS is not None:
+            y_min_adj = min(y_min - pad, WQS_TDS - pad)
+            y_max_adj = max(y_max + pad, WQS_TDS + pad)
+        else:
+            y_min_adj = y_min - pad
+            y_max_adj = y_max + pad
+    
         ax.set_ylim(y_min_adj, y_max_adj)
-    else:
+    
+    elif WQS_TDS is not None:
         ax.set_ylim(WQS_TDS - 50, WQS_TDS + 50)
-
+  
+if WQS_TDS is not None:
     ax.axhline(WQS_TDS, linestyle='--', color='red', linewidth=1.8, zorder=10)
     ax.text(
         1,
@@ -377,6 +411,7 @@ if uploaded_file:
         )
     )
     style_axes(ax, 'Site ID', 'Dissolved Oxygen (mg/L)', site_order)
+if WQS_DO is not None:
     ax.axhline(WQS_DO, linestyle='--', color='red', zorder=10)
     ax.text(1, WQS_DO + 0.1, 'WQS', color='red', va='bottom', zorder=11)
     ax.set_title(f"{segment_label}")
@@ -397,9 +432,12 @@ if uploaded_file:
         )
     )
     style_axes(ax, 'Site ID', 'pH (standard units)', site_order)
+if WQS_pH_MAX is not None:
     ax.axhline(WQS_pH_MAX, linestyle='--', color='red', zorder=10)
-    ax.axhline(WQS_pH_MIN, linestyle='--', color='red', zorder=10)
     ax.text(1, WQS_pH_MAX + 0.03, 'WQS Max', color='red', va='bottom', zorder=11)
+
+if WQS_pH_MIN is not None:
+    ax.axhline(WQS_pH_MIN, linestyle='--', color='red', zorder=10)
     ax.text(1, WQS_pH_MIN + 0.03, 'WQS Min', color='red', va='bottom', zorder=11)
     ax.set_title(f"{segment_label}")
     save_figure(fig_ph, os.path.join(output_dir, "Figure9_pH_Boxplot.png"))
@@ -510,6 +548,7 @@ if uploaded_file:
         style_axes(ax, 'Site ID', 'E. coli (CFU/100 mL)', site_order)
 
         # Geometric mean WQS line
+    if WQS_ECOLI_GM is not None:
         ax.axhline(WQS_ECOLI_GM, linestyle='--', color='red', zorder=10)
         ax.text(
             1, WQS_ECOLI_GM * 1.02,
@@ -517,6 +556,7 @@ if uploaded_file:
         )
 
         # Single-sample WQS line
+    if WQS_ECOLI_SINGLE is not None:
         ax.axhline(WQS_ECOLI_SINGLE, linestyle=':', color='red', zorder=10)
         ax.text(
             1, WQS_ECOLI_SINGLE * 1.02,
